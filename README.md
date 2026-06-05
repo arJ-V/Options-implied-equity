@@ -4,6 +4,8 @@
 
 Research pipeline that turns historical options chains into cross-sectional equity return signals, evaluates them with a leakage-safe backtest, and explores results in an interactive dashboard.
 
+View app demo [here](https://options-implied-equity-7ypdbpfkgrkgxhb8irqxyb.streamlit.app/)
+
 | | |
 |---|---|
 | **Universe (starter)** | SPY, QQQ, IWM |
