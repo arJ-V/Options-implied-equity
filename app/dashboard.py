@@ -2,7 +2,13 @@
 
 from __future__ import annotations
 
+import sys
 from pathlib import Path
+
+# Streamlit runs this file directly; ensure repo root is on sys.path.
+ROOT = Path(__file__).resolve().parent.parent
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 
 import pandas as pd
 import plotly.express as px
@@ -16,7 +22,6 @@ from signals.constants import SIGNAL_COLS, SIGNAL_ORIENTATION
 def available_signals(df: pd.DataFrame) -> list[str]:
     return [c for c in SIGNAL_COLS if c in df.columns and df[c].notna().any()]
 
-ROOT = Path(__file__).resolve().parent.parent
 SAMPLE_SIGNALS = ROOT / "data" / "sample" / "signals.parquet"
 FULL_SIGNALS = ROOT / "data" / "processed" / "signals.parquet"
 
