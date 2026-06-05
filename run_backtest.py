@@ -7,15 +7,14 @@ import argparse
 from pathlib import Path
 
 from backtest.engine import run_backtest, save_backtest
-
-ROOT = Path(__file__).resolve().parent
+from paths import DATA_PROCESSED, SIGNALS_PARQUET
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Backtest options-implied signals")
     parser.add_argument(
         "--signals",
-        default=str(ROOT / "data" / "processed" / "signals.parquet"),
+        default=str(SIGNALS_PARQUET),
         help="Input signals parquet",
     )
     parser.add_argument(
@@ -26,7 +25,7 @@ def main() -> None:
     )
     parser.add_argument(
         "--output-dir",
-        default=str(ROOT / "data" / "processed"),
+        default=str(DATA_PROCESSED),
         help="Directory for backtest outputs",
     )
     args = parser.parse_args()

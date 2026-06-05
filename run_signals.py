@@ -6,11 +6,10 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
+from paths import SIGNALS_PARQUET
 from signals.config import load_config
+from signals.constants import SIGNAL_COLS
 from signals.pipeline import compute_signals
-
-ROOT = Path(__file__).resolve().parent
-DEFAULT_OUTPUT = ROOT / "data" / "processed" / "signals.parquet"
 
 
 def main() -> None:
@@ -25,7 +24,7 @@ def main() -> None:
     parser.add_argument("--end", default=None, help="End date YYYY-MM-DD")
     parser.add_argument(
         "--output",
-        default=str(DEFAULT_OUTPUT),
+        default=str(SIGNALS_PARQUET),
         help="Output parquet path",
     )
     args = parser.parse_args()
@@ -41,11 +40,9 @@ def main() -> None:
     output.parent.mkdir(parents=True, exist_ok=True)
     panel.to_parquet(output, index=False)
 
-    signal_cols = [
-        "smirk", "risk_reversal", "risk_reversal_norm", "put_call_spread",
-        "term_slope", "vrp", "implied_skew",
-    ]
-    signal_cols = [c for c in signal_cols if c in panel.columns]
+    signal_cols = [c for c in SIGNAL_COLS if c in panel.columns]
+    if "risk_reversal_norm" in panel.columns:
+        signal_cols.append("risk_reversal_norm")
     coverage = panel[signal_cols].notna().mean().mul(100).round(1)
     print(f"\nWrote {len(panel)} rows to {output}")
     print("Coverage (% non-NaN):")

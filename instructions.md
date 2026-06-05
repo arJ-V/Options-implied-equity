@@ -1,8 +1,10 @@
-# Options-Implied Signals — Exact Definitions Reference
+# Options-Implied Signals — Specification
 
-Hand each section to Cursor as the spec for one file in `signals/`. Every signal is computed **per (date, underlying)** and produces one number that day. Conventions with more than one valid choice are flagged ⚠️ — pin them down before Cursor implements, or you'll get a plausible-but-wrong feature.
+Authoritative definitions for each module in `signals/`. Every signal is computed **per (date, underlying)** and produces one scalar per day.
 
-All IVs are annualized. All formulas assume you've already built the standardized surface (§0). Lag everything per the timing rule in §8.
+Research choices flagged with ⚠️ must be pinned in [`config.yaml`](config.yaml) before implementation — otherwise two runs can disagree on a “correct” feature.
+
+All IVs are annualized. All formulas assume the standardized surface (§0) is built first. Lag everything per the timing rules in §8.
 
 ---
 

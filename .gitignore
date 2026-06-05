@@ -2,7 +2,15 @@
 __pycache__/
 *.pyc
 .pytest_cache/
+.mypy_cache/
+.DS_Store
+
 data/processed/
 data/raw/
 !data/sample/
+
+.streamlit/secrets.toml
+
 *.egg-info/
+dist/
+build/

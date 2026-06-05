@@ -16,20 +16,18 @@ import plotly.graph_objects as go
 import streamlit as st
 
 from backtest.engine import run_backtest
+from paths import SAMPLE_SIGNALS_PARQUET, SIGNALS_PARQUET
 from signals.constants import SIGNAL_COLS, SIGNAL_ORIENTATION
 
 
 def available_signals(df: pd.DataFrame) -> list[str]:
     return [c for c in SIGNAL_COLS if c in df.columns and df[c].notna().any()]
 
-SAMPLE_SIGNALS = ROOT / "data" / "sample" / "signals.parquet"
-FULL_SIGNALS = ROOT / "data" / "processed" / "signals.parquet"
-
 
 def default_signals_path() -> Path:
-    if FULL_SIGNALS.exists():
-        return FULL_SIGNALS
-    return SAMPLE_SIGNALS
+    if SIGNALS_PARQUET.exists():
+        return SIGNALS_PARQUET
+    return SAMPLE_SIGNALS_PARQUET
 
 
 @st.cache_data(show_spinner=False)
@@ -55,7 +53,7 @@ def main() -> None:
         st.error(f"Signals file not found: {signals_path}. Run `python run_signals.py` first.")
         st.stop()
 
-    using_sample = Path(signals_path).resolve() == SAMPLE_SIGNALS.resolve()
+    using_sample = Path(signals_path).resolve() == SAMPLE_SIGNALS_PARQUET.resolve()
     if using_sample:
         st.info("Showing bundled 2024 sample (SPY/QQQ/IWM). Run `python run_signals.py` locally for the full panel.")
 
