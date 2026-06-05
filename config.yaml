@@ -1,0 +1,91 @@
+# Pinned research parameters — see instructions.md for formula definitions.
+# All signals are computed per (date, underlying) and lagged per timing rules below.
+
+data:
+  # Primary: free historical panel (IV + Greeks + OI + bid/ask).
+  # Start with SPY/QQQ/IWM (~1.3 GB) from GitHub release (verified working):
+  # https://github.com/lambdaclass/options_portfolio_backtester/releases/tag/data-v1
+  # Scale to 104 tickers via philippdubach/options-data (clone + download.sh).
+  primary_source: dubach
+  dubach_base_url: "https://static.philippdubach.com/data/options"
+  starter_release_url: "https://github.com/lambdaclass/options_portfolio_backtester/releases/download/data-v1"
+  starter_symbols: [SPY, QQQ, IWM]
+  # Supplement: yfinance for live chains only (no reliable history).
+  supplement_source: yfinance
+
+timing:
+  # Signal at close on date T uses only data observable by that close.
+  signal_as_of: market_close_same_day
+  # Forward return window opens the next session (no same-day leakage).
+  forward_return_start: T_plus_1
+  # Trailing realized vol uses log returns strictly before T.
+  rv_window_trading_days: 21
+  rv_end_date: T_minus_1
+
+surface:
+  filters:
+    min_bid: 0.01
+    drop_crossed_markets: true
+    max_spread_pct_of_mid: 0.50
+    min_open_interest: 10
+    moneyness_min: 0.70
+    moneyness_max: 1.30
+    dte_min: 7
+    dte_max: 365
+
+  grid:
+    put_deltas: [-0.50, -0.25, -0.10]
+    call_deltas: [0.10, 0.25, 0.50]
+    maturities_days: [30, 60, 90]
+
+  interpolation:
+    within_expiry: log_moneyness
+    across_maturity: total_variance  # IV^2 * T, not raw IV
+
+signals:
+  smirk:
+    # Delta-standardized (preferred over XZZ moneyness bins).
+    definition: delta
+    formula: "iv_p25_30 - iv_atm_30"
+    # feature > 0 → steeper put skew → bearish → expect lower forward return → short
+    direction: high_short
+
+  risk_reversal:
+    maturity_days: 30
+    formula: "iv_c25 - iv_p25"
+    normalized_formula: "(iv_c25 - iv_p25) / iv_atm"
+    # feature > 0 → calls richer than puts → bullish tilt → long
+    direction: high_long
+
+  put_call_spread:
+    # Uses raw same-(K,T) call+put pairs — NOT interpolated grid IVs.
+    weight_by: pair_open_interest
+    formula: "OI-weighted mean(IV_call - IV_put)"
+    # feature > 0 → call IV > put IV → bullish → long
+    direction: high_long
+
+  term_slope:
+    short_maturity_days: 30
+    long_maturity_days: 90
+    formula: "iv_atm_90 - iv_atm_30"
+    exclude_earnings_in_short_window: true
+    earnings_lookahead_days: 30
+    # feature < 0 → inverted term structure → near-term stress → bearish
+    direction: negative_bearish
+
+  vrp:
+    formula: "iv_atm_30 - RV_21"
+    rv_annualization_factor: 252
+    # direction left to backtest; do not assert sign in production logic
+    direction: empirical
+
+  implied_skew:
+    enabled: true   # Phase 2 — OTM strike-strip BKM integrals
+    risk_free_rate: 0.05
+
+  order_flow:
+    enabled: false  # Phase 3 — needs signed/opening volume (IvyDB-class data)
+
+validation:
+  require_all_legs: true   # emit NaN if any required input missing post-filter
+  bkm_synthetic_skew_tolerance: 0.05

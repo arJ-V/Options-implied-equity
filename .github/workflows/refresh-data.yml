@@ -1,0 +1,29 @@
+name: Refresh signals
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 12 * * 1"  # Mondays 12:00 UTC
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Download starter data
+        run: |
+          chmod +x scripts/download_release.sh
+          ./scripts/download_release.sh
+      - name: Compute signals + backtest
+        run: |
+          pip install -r requirements.txt
+          python run_signals.py --start 2020-01-01
+          python run_backtest.py --horizon 21
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: processed-data
+          path: data/processed/
