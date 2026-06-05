@@ -17,7 +17,14 @@ def available_signals(df: pd.DataFrame) -> list[str]:
     return [c for c in SIGNAL_COLS if c in df.columns and df[c].notna().any()]
 
 ROOT = Path(__file__).resolve().parent.parent
-DEFAULT_SIGNALS = ROOT / "data" / "processed" / "signals.parquet"
+SAMPLE_SIGNALS = ROOT / "data" / "sample" / "signals.parquet"
+FULL_SIGNALS = ROOT / "data" / "processed" / "signals.parquet"
+
+
+def default_signals_path() -> Path:
+    if FULL_SIGNALS.exists():
+        return FULL_SIGNALS
+    return SAMPLE_SIGNALS
 
 
 @st.cache_data(show_spinner=False)
@@ -37,11 +44,15 @@ def main() -> None:
     st.set_page_config(page_title="Options-Implied Signals", layout="wide")
     st.title("Options-Implied Equity Signals")
 
-    default_signals = st.secrets.get("data", {}).get("signals_path", str(DEFAULT_SIGNALS))
+    default_signals = st.secrets.get("data", {}).get("signals_path", str(default_signals_path()))
     signals_path = st.sidebar.text_input("Signals parquet", default_signals)
     if not Path(signals_path).exists():
         st.error(f"Signals file not found: {signals_path}. Run `python run_signals.py` first.")
         st.stop()
+
+    using_sample = Path(signals_path).resolve() == SAMPLE_SIGNALS.resolve()
+    if using_sample:
+        st.info("Showing bundled 2024 sample (SPY/QQQ/IWM). Run `python run_signals.py` locally for the full panel.")
 
     horizon = st.sidebar.selectbox("Forward horizon (days)", [5, 21, 63], index=1)
     symbols = st.sidebar.multiselect("Symbols", ["SPY", "QQQ", "IWM"], default=["SPY", "QQQ", "IWM"])

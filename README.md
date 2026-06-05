@@ -9,7 +9,7 @@ See [`instructions.md`](instructions.md) for formula definitions and [`config.ya
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
-pip install -r requirements.txt -r requirements-viz.txt
+pip install -r requirements.txt
 
 # 1. Download data (~1.3 GB)
 ./scripts/download_release.sh
@@ -80,7 +80,7 @@ Mount `data/processed` and `data/raw/release` (configured in `docker-compose.yml
 1. Push repo to GitHub
 2. Include precomputed `data/processed/signals.parquet` (or run pipeline in CI)
 3. Deploy with main file: `app/dashboard.py`
-4. Python 3.13, deps: `requirements.txt` + `requirements-viz.txt`
+4. Python 3.11+, deps: `requirements.txt` (auto-detected)
 
 ## Data sources
 
@@ -95,10 +95,22 @@ pytest -q
 
 ## Streamlit Cloud
 
-1. Push repo to GitHub (include `data/processed/signals.parquet` or run refresh workflow)
-2. Go to [share.streamlit.io](https://share.streamlit.io) → New app
-3. Main file: `app/dashboard.py`
-4. Requirements: `requirements.txt` and `requirements-viz.txt`
+1. Push repo to GitHub (includes `data/sample/signals.parquet` — 2024 demo data for SPY/QQQ/IWM)
+2. Go to [share.streamlit.io](https://share.streamlit.io) → **Create app**
+3. Set:
+   - **Repository:** `arJ-V/Options-implied-equity`
+   - **Branch:** `main`
+   - **Main file path:** `app/dashboard.py`
+4. **Advanced settings → Python version:** 3.11 (or 3.12)
+5. Dependencies: Streamlit reads `requirements.txt` from the repo root automatically — no extra config needed
+6. Optional **Secrets** (Settings → Secrets) to override data path:
+
+```toml
+[data]
+signals_path = "data/sample/signals.parquet"
+```
+
+The dashboard auto-uses `data/processed/signals.parquet` if you've run the full pipeline locally; otherwise it falls back to the bundled sample.
 
 ## Roadmap
 

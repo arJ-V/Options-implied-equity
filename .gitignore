@@ -4,4 +4,5 @@ __pycache__/
 .pytest_cache/
 data/processed/
 data/raw/
+!data/sample/
 *.egg-info/
